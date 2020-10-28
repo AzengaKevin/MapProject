@@ -1,61 +1,54 @@
 
 import javafx.scene.paint.Color;
 
-public class Category {
+public enum Category {
 
-    private String name;
-    private Color colorMiddle;
-    private Color colorBorder;
+    Bus(Color.RED, Color.BLACK),
+    Underground(Color.BLUE, Color.BLACK),
+    Train(Color.GREEN, Color.BLACK),
+    None(Color.GRAY, Color.BLACK);
 
-    Category(String name){
 
-        this.name = name;
-        switch (name) {
+    private Color fill;
+    private Color stroke;
+
+    Category(Color fill, Color stroke) {
+
+        this.fill = fill;
+        this.stroke = stroke;
+
+    }
+
+    public Color getFill() {
+        return fill;
+    }
+
+    public void setFill(Color fill) {
+        this.fill = fill;
+    }
+
+    public Color getStroke() {
+        return stroke;
+    }
+
+    public void setStroke(Color stroke) {
+        this.stroke = stroke;
+    }
+
+    public static Category fromString(String s) {
+        switch (s) {
             case "Bus":
-                this.colorMiddle = Color.RED;
-                this.colorBorder = Color.BLACK;
-                break;
-
+                return Bus;
             case "Underground":
-                this.colorMiddle = Color.BLUE;
-                this.colorBorder = Color.BLACK;
-                break;
-
+                return Underground;
             case "Train":
-                this.colorMiddle = Color.GREEN;
-                this.colorBorder = Color.BLACK;
-                break;
-
-            default :
-                this.colorMiddle = Color.BLACK;
-                this.colorBorder = Color.GRAY;
-                break;
+                return Train;
+            default:
+                return None;
         }
-
     }
 
-    public String getName() {
-        return name;
+    public String toName() {
+        return name();
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Color getColorMiddle() {
-        return colorMiddle;
-    }
-
-    public void setColorMiddle(Color colorMiddle) {
-        this.colorMiddle = colorMiddle;
-    }
-
-    public Color getColorBorder() {
-        return colorBorder;
-    }
-
-    public void setColorBorder(Color colorBorder) {
-        this.colorBorder = colorBorder;
-    }
-
 }

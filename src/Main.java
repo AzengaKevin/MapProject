@@ -326,7 +326,7 @@ public class Main extends Application {
             imageBackground.setOnMouseClicked(e -> {
                 if (Functions.checkPosition(newPlaces, (int) e.getX(), (int) e.getY())) {
                     //Create new Named Place
-                    Place place = new Place(nameTextField.getText(), new Category(categoryName), (int) e.getX(), (int) e.getY());
+                    Place place = new Place(nameTextField.getText(), Category.fromString(categoryName), (int) e.getX(), (int) e.getY());
 
                     //Add the place to new ones
                     newPlaces.add(place);
@@ -335,9 +335,6 @@ public class Main extends Application {
                     putTriangleInMap((int) e.getX(), (int) e.getY(), place);
 
                     mapPane.getChildren().add(place);
-
-                    //Change the colors
-                    place.print();
 
                 } else {
                     Functions.showBoxAlert(Alert.AlertType.ERROR, "Error", "Position Error .", "There is another mark in this position .");
@@ -360,15 +357,13 @@ public class Main extends Application {
                 if (newBtnClicked) {
                     if (Functions.checkPosition(newPlaces, (int) e.getX(), (int) e.getY())) {
 
-                        Place obj = new DescribedPlace(nameTextField.getText(), new Category("None"), (int) e.getX(), (int) e.getY(), "Description");
+                        Place place = new DescribedPlace(nameTextField.getText(), Category.fromString(categoryName), (int) e.getX(), (int) e.getY(), "Description");
 
-                        newPlaces.add(obj);
+                        newPlaces.add(place);
 
-                        putTriangleInMap((int) e.getX(), (int) e.getY(), obj);
+                        putTriangleInMap((int) e.getX(), (int) e.getY(), place);
 
-                        mapPane.getChildren().add(obj);
-
-                        obj.print();
+                        mapPane.getChildren().add(place);
 
                     } else {
                         Functions.showBoxAlert(Alert.AlertType.ERROR, "Error", "Position Error .", "There is another mark in this position .");
@@ -400,24 +395,11 @@ public class Main extends Application {
     //************9
     public void onClickHideCategory() {
         hideCategory.setOnAction(event -> {
-            switch (categoryName) {
-                case "Bus":
-                    hideCategoryByType(0);
-                    break;
-                case "Underground":
-                    hideCategoryByType(1);
-                    break;
-                case "Train":
-                    hideCategoryByType(2);
-                    break;
-                default:
-                    hideCategoryByType(3);
-                    break;
-            }
+
         });
     }
 
-    public void hideCategoryByType(int typeCategory) {
+    public void hideCategoryByType(Category category) {
 
     }
 

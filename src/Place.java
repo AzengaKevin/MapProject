@@ -13,10 +13,16 @@ public class Place extends Polygon {
     private String type = DEFAULT_TYPE;
 
     public Place(String name, Category category, double posX, double posY) {
+
         super(posX, posY, (posX - 15.00), (posY - 30.00), (posX + 15.00), (posY - 30.00));
         this.name = name;
         this.category = category;
         this.position = new Position(posX, posY);
+
+        //Set stroke and fill
+        setFill(category.getFill());
+        setStroke(category.getStroke());
+
     }
 
     public String getName() {
@@ -48,12 +54,8 @@ public class Place extends Polygon {
     }
 
     public void setType(String type) {
-        this.type = type;
-    }
 
-    public void print() {
-        setFill(category.getColorMiddle());
-        setStroke(category.getColorBorder());
+        this.type = type;
     }
 
     public void setSelect(boolean selected) {
@@ -74,7 +76,7 @@ public class Place extends Polygon {
 
     @Override
     public String toString() {
-        return String.format("%s,%s,%.2f,%.2f,%s", "Named", category.getName(), position.getPosX(), position.getPosY(), name);
+        return String.format("%s,%s,%.2f,%.2f,%s", "Named", category.toName(), position.getPosX(), position.getPosY(), name);
     }
 
     public static Place fromString(String placeStr) {
@@ -82,7 +84,7 @@ public class Place extends Polygon {
         String[] parts = placeStr.split(",");
 
         try {
-            return new Place(parts[4], new Category(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
+            return new Place(parts[4], Category.fromString(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
         } catch (NumberFormatException e) {
             System.err.println("Format Exception: " + e.getLocalizedMessage());
             return null;
