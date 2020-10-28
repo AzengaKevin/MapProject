@@ -2,13 +2,15 @@
 import javafx.scene.paint.Color;
 
 public class Category {
-    private String catename;
+
+    private String name;
     private Color colorMiddle;
     private Color colorBorder;
 
-    Category(String catename){
-        this.catename = catename;
-        switch (catename) {
+    Category(String name){
+
+        this.name = name;
+        switch (name) {
             case "Bus":
                 this.colorMiddle = Color.RED;
                 this.colorBorder = Color.BLACK;
@@ -32,12 +34,12 @@ public class Category {
 
     }
 
-    public String getCatename() {
-        return catename;
+    public String getName() {
+        return name;
     }
 
-    public void setCatename(String catename) {
-        this.catename = catename;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Color getColorMiddle() {

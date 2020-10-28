@@ -1,28 +1,26 @@
-
-
 public class Position {
 
-    private int posX;
-    private int posY;
+    private double posX;
+    private double posY;
 
-    public Position(int posX, int posY) {
+    public Position(double posX, double posY) {
         this.posX = posX;
         this.posY = posY;
     }
 
-    public int getPosX() {
+    public double getPosX() {
         return this.posX;
     }
 
-    public int getPosY() {
+    public double getPosY() {
         return this.posY;
     }
 
-    public void setPosX(int x) {
+    public void setPosX(double x) {
         this.posX = x;
     }
 
-    public void setPosY(int y) {
+    public void setPosY(double y) {
         this.posY = y;
     }
 }

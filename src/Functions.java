@@ -1,53 +1,56 @@
-
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 
 public class Functions {
 
     public static void showScene(Stage primaryStage, Scene baseScene) {
+
         primaryStage.setTitle("");
         primaryStage.setScene(baseScene);
         primaryStage.setResizable(false);
         primaryStage.show();
     }
 
+    /**
+     * Choose a file from the PC
+     *
+     * @param primaryStage the component that the FileChooser will hook on
+     * @return the selected file
+     */
     public static File chooseFileFromPc(Stage primaryStage) {
-        DirectoryChooser dc = new DirectoryChooser();
-        dc.setInitialDirectory(new File(System.getProperty("user.home")));
+
         FileChooser fileChooser = new FileChooser();
         return fileChooser.showOpenDialog(primaryStage);
+
     }
 
-    public static boolean checkImage(File file) {
-        String name = file.getName();
-        System.out.println(name);
-        String ex = name.substring(name.indexOf(".") + 1, name.length());
-        System.out.println(ex);
-        if (ex.equals("jpg") || ex.equals("png") || ex.equals("bmp")) {
-            return true;
-        }
-        return false;
-    }
+    /**
+     * Check whether the extension of the specified file matches the passed ones
+     *
+     * @param file       the file in question
+     * @param extensions the stated extensions
+     * @return true whether the file extension matches otherwise false
+     */
+    public static boolean matchesAnyExtension(File file, String... extensions) {
 
-    public static boolean checkPlacesFile(File file) {
-        String name = file.getName();
-        String ex = name.substring(name.indexOf("") + 1, name.length());
-        return ex.equals("txt") || ex.equals("places");
+        String extension = file.getName().substring(file.getName().lastIndexOf('.') + 1);
+
+        return Arrays.asList(extensions).contains(extension);
     }
 
     public static void saveData(String nameMap, ArrayList<Place> listObj) throws IOException {
         if (!listObj.isEmpty()) {
-            new SaveAndLoad().save((String) nameMap.subSequence(0, nameMap.indexOf("")), listObj);
+            new FileHandler().saveToFile((String) nameMap.subSequence(0, nameMap.indexOf("")), listObj);
             Functions.showBoxAlert(Alert.AlertType.INFORMATION, "Saved", "Saved successfully", "");
         } else {
             Functions.showBoxAlert(Alert.AlertType.ERROR, "!!", "There is no data to save ", "");
@@ -73,6 +76,14 @@ public class Functions {
         });
     }
 
+    /**
+     * Show a javafx alert
+     *
+     * @param alertType the type of the alert
+     * @param title     of the alert
+     * @param error     status of the alert
+     * @param message   of the alert
+     */
     public static void showBoxAlert(Alert.AlertType alertType, String title, String error, String message) {
         Alert alertError = new Alert(alertType);
         alertError.setTitle(title);
@@ -83,10 +94,9 @@ public class Functions {
 
     public static Place searchOnObjByPosition(ArrayList<Place> listObj, double posX, double posY) {
 
-        for (int i = 0; i < listObj.size(); i++) {
-
-            if (listObj.get(i).getPoint().getPosX() == posX && listObj.get(i).getPoint().getPosY() == posY) {
-                return listObj.get(i);
+        for (Place place : listObj) {
+            if (place.getPosition().getPosX() == posX && place.getPosition().getPosY() == posY) {
+                return place;
             }
         }
         return null;
@@ -103,7 +113,7 @@ public class Functions {
         return true;
     }
 
-    public static ArrayList<Place> addObject(ArrayList<Place>listObj ,String type, Place obj) {
+    public static ArrayList<Place> addObject(ArrayList<Place> listObj, String type, Place obj) {
 
         listObj.add(obj);
         return listObj;

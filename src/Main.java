@@ -1,5 +1,3 @@
-
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -16,6 +14,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
@@ -24,14 +23,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static javafx.application.Application.launch;
-import javafx.scene.shape.Polygon;
 
-public class Main extends Application{
+/**
+ * The launcher class of the application, where the application is bootstrapped
+ */
+public class Main extends Application {
 
-    //
     private MenuItem loadMapBtn;
     private MenuItem loadPlacesBtn;
     private MenuItem saveBtn;
@@ -92,7 +92,7 @@ public class Main extends Application{
     private TextField textFieldNameAddByDescribed;
     private TextField textFieldDescribedAddByDescribed;
     //
-    private boolean[] hidenCategory = new boolean[4];
+    private boolean[] hiddenCategory = new boolean[4];
     //
     private Button okCoordinates;
     private Button cancelCoordinates;
@@ -139,6 +139,7 @@ public class Main extends Application{
 
     //************1
     public void onSelectLoadMap(Stage primaryStage) {
+
         loadMapBtn.setOnAction(event -> {
             if ("".equals(nameMap)) {
                 loadMap(primaryStage);
@@ -156,16 +157,27 @@ public class Main extends Application{
         });
     }
 
+    /**
+     * Loads the map image and initializes the main window
+     *
+     * @param primaryStage the windows primary stage
+     */
     public void loadMap(Stage primaryStage) {
+
         File f = Functions.chooseFileFromPc(primaryStage);
+
         System.out.println(f.getAbsolutePath());
-        if (Functions.checkImage(f)) {
+
+        if (Functions.matchesAnyExtension(f, "jpg", "jpeg", "bmp", "png")) {
+
             Image image = null;
+
             try {
                 image = new Image(new FileInputStream(f));
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
+
             imageBackground = new ImageView(image);
             imageBackground.setFitHeight(600);
             imageBackground.setFitWidth(900);
@@ -182,17 +194,19 @@ public class Main extends Application{
     }
 
     //************2
-    public void onSelectLoadPlaces(Stage primaryStage) throws IOException {
+    public void onSelectLoadPlaces(Stage primaryStage) {
+
         loadPlacesBtn.setOnAction(event -> {
             if (!"".equals(nameMap)) {
                 try {
-                    ArrayList<Place> l = new SaveAndLoad().load(primaryStage);
-                    if (!l.isEmpty()) {
-                        for (int i = 0; i < l.size(); i++) {
-                            listObj.add(l.get(i));
-                            categoryName = l.get(i).getCategory().getCatename();
+                    List<Place> l = FileHandler.loadFromFile(primaryStage);
 
-                            putTriangleInMap(l.get(i).getPoint().getPosX(), l.get(i).getPoint().getPosY(),l.get(i));
+                    if (!l.isEmpty()) {
+                        for (Place place : l) {
+                            listObj.add(place);
+                            categoryName = place.getCategory().getName();
+
+                            putTriangleInMap(place.getPosition().getPosX(), place.getPosition().getPosY(), place);
                         }
                         nameMenu.getItems().clear();
                         nameMenu.getItems().addAll(saveBtn, exitBtn);
@@ -206,7 +220,8 @@ public class Main extends Application{
             } else {
                 Functions.showBoxAlert(Alert.AlertType.ERROR, "Error", "Map is not exist ", "Can't be loaded places if there is no map");
             }
-        });}
+        });
+    }
 
 
     //************3
@@ -257,13 +272,11 @@ public class Main extends Application{
         });
     }
 
-    //@SuppressWarnings("empty-statement")
     public void newObjByNamed() {
         showBoxAddObjByName();
         onClickAddByNameBtn();
     }
 
-    //@SuppressWarnings("empty-statement")
     public void newObjByDescribed() {
         showBoxAddObjByDescribed();
         onClickAddByDescribedBtn();
@@ -309,7 +322,7 @@ public class Main extends Application{
         addPane.add(addByDescribedBtn, 0, 2);
         Scene addScene = new Scene(addPane);
         addByDescribedStage = new Stage();
-        addByDescribedStage.setTitle("Add Name & Describ for Position");
+        addByDescribedStage.setTitle("Add Name & Describe for Position");
         addByDescribedStage.setScene(addScene);
         addByDescribedStage.show();
     }
@@ -317,30 +330,27 @@ public class Main extends Application{
     public void onClickAddByNameBtn() {
         addByNameBtn.setOnAction(event -> {
             addByNameStage.close();
-            imageBackground.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                @Override
-                public void handle(MouseEvent event) {
-                    if (newBtnClicked) {
-                        if (Functions.checkPosition(listObj, (int) event.getX() , (int) event.getY() )) {
-                            Place obj = null;
-                            Category cate ;
-                            if (categoryName.equals("")) {
-                                cate = new Category("None");
-
-                            } else {
-                                cate = new Category(categoryName);
-                            }
-                            obj = new NamedPlace(textFieldNameAddByName.getText(), cate, (int) event.getX() , (int) event.getY() );
-                            listObj = Functions.addObject(listObj, "named", obj);
-                            putTriangleInMap((int) event.getX(), (int) event.getY(), obj);
-                            spaceMap.getChildren().add(obj);
-                            obj.print();
+            imageBackground.setOnMouseClicked(event1 -> {
+                if (newBtnClicked) {
+                    if (Functions.checkPosition(listObj, (int) event1.getX(), (int) event1.getY())) {
+                        Place obj = null;
+                        Category cate;
+                        if (categoryName.equals("")) {
+                            cate = new Category("None");
 
                         } else {
-                            Functions.showBoxAlert(Alert.AlertType.ERROR, "Error", "Position Error .", "There is another mark in this position .");
+                            cate = new Category(categoryName);
                         }
-                        newBtnClicked = false;
+                        obj = new Place(textFieldNameAddByName.getText(), cate, (int) event1.getX(), (int) event1.getY());
+                        listObj = Functions.addObject(listObj, "named", obj);
+                        putTriangleInMap((int) event1.getX(), (int) event1.getY(), obj);
+                        spaceMap.getChildren().add(obj);
+                        obj.print();
+
+                    } else {
+                        Functions.showBoxAlert(Alert.AlertType.ERROR, "Error", "Position Error .", "There is another mark in this position .");
                     }
+                    newBtnClicked = false;
                 }
             });
         });
@@ -349,43 +359,39 @@ public class Main extends Application{
     public void onClickAddByDescribedBtn() {
         addByDescribedBtn.setOnAction((ActionEvent event) -> {
             addByDescribedStage.close();
-            imageBackground.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                @Override
-                public void handle(MouseEvent event) {
-                    if (newBtnClicked) {
-                        if (Functions.checkPosition(listObj, (int) event.getX() , (int) event.getY() )) {
-                            Place obj = null;
-                            Category cate;
-                            if (categoryName.equals("")) {
-                                cate = new Category("None");
-
-                            } else {
-                                cate = new Category(categoryName);
-                            }
-                            obj = new DiscribedPlace(textFieldNameAddByName.getText(),"described", cate, (int) event.getX() , (int) event.getY() );
-                            listObj = Functions.addObject(listObj, "described",obj);
-                            putTriangleInMap((int) event.getX(), (int) event.getY() , obj);
-                            spaceMap.getChildren().add(obj);
-                            obj.print();
+            imageBackground.setOnMouseClicked(event1 -> {
+                if (newBtnClicked) {
+                    if (Functions.checkPosition(listObj, (int) event1.getX(), (int) event1.getY())) {
+                        Place obj = null;
+                        Category cate;
+                        if (categoryName.equals("")) {
+                            cate = new Category("None");
 
                         } else {
-                            Functions.showBoxAlert(Alert.AlertType.ERROR, "Error", "Position Error .", "There is another mark in this position .");
+                            cate = new Category(categoryName);
                         }
-                        newBtnClicked = false;
+                        obj = new DescribedPlace(textFieldNameAddByName.getText(), new Category("described"), (int) event1.getX(), (int) event1.getY(), "Description");
+                        listObj = Functions.addObject(listObj, "described", obj);
+                        putTriangleInMap((int) event1.getX(), (int) event1.getY(), obj);
+                        spaceMap.getChildren().add(obj);
+                        obj.print();
+
+                    } else {
+                        Functions.showBoxAlert(Alert.AlertType.ERROR, "Error", "Position Error .", "There is another mark in this position .");
                     }
+                    newBtnClicked = false;
                 }
             });
         });
     }
 
-    public void putTriangleInMap(int posX, int posY, Polygon obj) {
+    public void putTriangleInMap(double posX, double posY, Polygon obj) {
         newTriangle(posX, posY, obj);
         setActionForNewTriangle();
     }
 
 
-
-    public void newTriangle(int posX, int posY, Polygon obj) {
+    public void newTriangle(double posX, double posY, Polygon obj) {
         switch (categoryName) {
             case "Bus":
                 addTriangleToCategoryList(0, posX, posY, obj);
@@ -403,7 +409,7 @@ public class Main extends Application{
         }
     }
 
-    public void addTriangleToCategoryList(int typeTriangle,  int posX, int posY, Polygon obj) {
+    public void addTriangleToCategoryList(int typeTriangle, double posX, double posY, Polygon obj) {
         btn2[typeTriangle].add(obj);
         //btn2[typeTriangle].get(btn2[typeTriangle].size() - 1).setTranslateX(posX);
         //btn2[typeTriangle].get(btn2[typeTriangle].size() - 1).setTranslateY(posY);
@@ -418,36 +424,35 @@ public class Main extends Application{
                 int d1 = i;
                 int d2 = j;
 
-                btn2[i].get(j).setOnMouseClicked(new EventHandler<MouseEvent>() {
-                    @Override
-                    public void handle(MouseEvent event) {
+                btn2[i].get(j).setOnMouseClicked(event -> {
 
 
-                        Place p = Functions.searchOnObjByPosition(listObj,  btn2[d1].get(d2).getPoints().get(0),  btn2[d1].get(d2).getPoints().get(1));
-                        if (event.getButton() == MouseButton.PRIMARY) {
-                            if (!selectionMode) {
+                    Place p = Functions.searchOnObjByPosition(listObj, btn2[d1].get(d2).getPoints().get(0), btn2[d1].get(d2).getPoints().get(1));
+                    if (event.getButton() == MouseButton.PRIMARY) {
+                        if (!selectionMode) {
+                            selectItem(p, d1, d2);
+                            selectionMode = true;
+                        } else {
+                            if (!selectionPlaces.contains(btn2[d1].get(d2))) {
                                 selectItem(p, d1, d2);
-                                selectionMode = true;
                             } else {
-                                if (!selectionPlaces.contains(btn2[d1].get(d2))) {
-                                    selectItem(p, d1, d2);
-                                } else {
-                                    deSelectItem(p, d1, d2);
-                                    if (selectionPlaces.isEmpty()) {
-                                        selectionMode = false;
-                                    }
+                                deSelectItem(p, d1, d2);
+                                if (selectionPlaces.isEmpty()) {
+                                    selectionMode = false;
                                 }
                             }
                         }
-                        if (event.getButton() == MouseButton.SECONDARY) {
-                            if (selectionMode) {
-                                Functions.showBoxAlert(Alert.AlertType.ERROR, "Error ", "There is more than one item selected .", "Cannot display Info for more than one item .");
+                    }
+                    if (event.getButton() == MouseButton.SECONDARY) {
+                        if (selectionMode) {
+                            Functions.showBoxAlert(Alert.AlertType.ERROR, "Error ", "There is more than one item selected .", "Cannot display Info for more than one item .");
+                        } else {
+                            String s = "Name:" + p.getName() + "[" + p.getPosition().getPosX() + "," + p.getPosition().getPosY() + "]";
+                            if (p.getType().equals("Named")) {
+                                Functions.showBoxAlert(Alert.AlertType.INFORMATION, "Info ", s, "");
                             } else {
-                                String s = "Name:" + p.getName() + "[" + p.getPoint().getPosX() + "," + p.getPoint().getPosY() + "]";
-                                if (p.getTypeObj().equals("Named")) {
-                                    Functions.showBoxAlert(Alert.AlertType.INFORMATION, "Info ", s, "");
-                                } else {
-                                    String s1 = "Description:" + p.getDescription();
+                                if (p instanceof DescribedPlace) {
+                                    String s1 = "Description:" + ((DescribedPlace) p).getDescription();
                                     Functions.showBoxAlert(Alert.AlertType.INFORMATION, "Info ", s + "\n" + s1, "");
                                 }
                             }
@@ -479,8 +484,8 @@ public class Main extends Application{
                     selectionMode = false;
 
                     for (int i = 0; i < selectionPlaces.size(); i++) {
-                        Place p = Functions.searchOnObjByPosition(listObj, selectionPlaces.get(i).getPoints().get(0),  selectionPlaces.get(i).getPoints().get(1));
-                        p.setHiden(true);
+                        Place p = Functions.searchOnObjByPosition(listObj, selectionPlaces.get(i).getPoints().get(0), selectionPlaces.get(i).getPoints().get(1));
+                        p.setHidden(true);
                         p.setSelect(false);
                         hideItems.add(selectionPlaces.get(i));
                     }
@@ -494,7 +499,7 @@ public class Main extends Application{
                         for (int j = 0; j < hideItems.size(); j++) {
 
                             Place p = Functions.searchOnObjByPosition(listObj, hideItems.get(j).getPoints().get(0), hideItems.get(j).getPoints().get(1));
-                            p.setHiden(false);
+                            p.setHidden(false);
                             hideItems.get(j).setVisible(true);
                         }
                         hideItems.clear();
@@ -558,14 +563,14 @@ public class Main extends Application{
 
     public void hideCategoryByType(int typeCategory) {
         if (!btn2[typeCategory].isEmpty()) {
-            if (hidenCategory[typeCategory]) {
+            if (hiddenCategory[typeCategory]) {
                 for (int i = 0; i < btn2[typeCategory].size(); i++) {
                     //Place p = SearchOnObjByPosition((int) btn2[typeCategory].get(i).getTranslateX(), (int) btn2[typeCategory].get(i).getTranslateX());
                     //p.setHiden(false);
                     btn2[typeCategory].get(i).setVisible(true);
                     hideItems.remove(btn2[typeCategory].get(i));
                 }
-                hidenCategory[typeCategory] = false;
+                hiddenCategory[typeCategory] = false;
             } else {
                 for (int i = 0; i < btn2[typeCategory].size(); i++) {
                     //Place p = SearchOnObjByPosition((int) btn2[typeCategory].get(i).getTranslateX(), (int) btn2[typeCategory].get(i).getTranslateY());
@@ -573,7 +578,7 @@ public class Main extends Application{
                     btn2[typeCategory].get(i).setVisible(false);
                     hideItems.add(btn2[typeCategory].get(i));
                 }
-                hidenCategory[typeCategory] = true;
+                hiddenCategory[typeCategory] = true;
             }
         } else {
             Functions.showBoxAlert(Alert.AlertType.INFORMATION, "!!", "There are no any mark in this category ", "");
@@ -589,7 +594,7 @@ public class Main extends Application{
                 if (!"".equals(nameMap)) {
                     if (selectionMode) {
                         for (int i = 0; i < selectionPlaces.size(); i++) {
-                            Place p = Functions.searchOnObjByPosition(listObj,  selectionPlaces.get(i).getPoints().get(0), selectionPlaces.get(i).getPoints().get(1));
+                            Place p = Functions.searchOnObjByPosition(listObj, selectionPlaces.get(i).getPoints().get(0), selectionPlaces.get(i).getPoints().get(1));
                             p.setSelect(false);
                             p.setEffect(null);
 
@@ -601,10 +606,10 @@ public class Main extends Application{
                         for (int i = 0; i < listObj.size(); i++) {
                             if (listObj.get(i).getName().equals(textSearch.getText())) {
                                 noResulte = false;
-                                Polygon btn = searchOnTriangleByPosition(listObj.get(i).getPoint().getPosX(), listObj.get(i).getPoint().getPosY());
-                                Place p = Functions.searchOnObjByPosition(listObj, listObj.get(i).getPoint().getPosX(), listObj.get(i).getPoint().getPosY());
+                                Polygon btn = searchOnTriangleByPosition(listObj.get(i).getPosition().getPosX(), listObj.get(i).getPosition().getPosY());
+                                Place p = Functions.searchOnObjByPosition(listObj, listObj.get(i).getPosition().getPosX(), listObj.get(i).getPosition().getPosY());
                                 if (hideItems.contains(btn)) {
-                                    p.setHiden(false);
+                                    p.setHidden(false);
                                     hideItems.remove(btn);
                                     btn.setVisible(true);
                                     //
@@ -695,7 +700,7 @@ public class Main extends Application{
                 } else {
                     Place p = Functions.searchOnObjByPosition(listObj, Integer.valueOf(textPosX.getText()), Integer.valueOf(textPosY.getText()));
                     if (hideItems.contains(btn)) {
-                        p.setHiden(false);
+                        p.setHidden(false);
                         p.setSelect(true);
                         btn.setVisible(true);
                         btn.setEffect(shadow);
@@ -714,7 +719,7 @@ public class Main extends Application{
         });
     }
 
-    public Polygon searchOnTriangleByPosition(int posX, int posY) {
+    public Polygon searchOnTriangleByPosition(double posX, double posY) {
         for (int i = 0; i < btn2.length; i++) {
             for (int j = 0; j < btn2[i].size(); j++) {
                 if (posX == btn2[i].get(j).getTranslateX() && posY == btn2[i].get(j).getTranslateY()) {
@@ -725,18 +730,24 @@ public class Main extends Application{
         return null;
     }
 
+    /**
+     * Initializes all the nodes of the application with a couple of containers
+     */
     public void initialize() {
         spaceMap = new Pane();
         root = new BorderPane();
         baseScene = new Scene(root, 1100, 900);
+
         // Menu Items
         loadMapBtn = new MenuItem("Load Map");
         loadPlacesBtn = new MenuItem("Load Places");
         saveBtn = new MenuItem("Save");
         exitBtn = new MenuItem("Exit");
+
         // Menu Bar
         menu = new MenuBar();
-        // Menu Icon
+
+        // Menu
         nameMenu = new Menu("File");
         //
         nameMenu.getItems().addAll(loadMapBtn, loadPlacesBtn, saveBtn, exitBtn);

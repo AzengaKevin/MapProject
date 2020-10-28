@@ -1,26 +1,22 @@
 
 import javafx.scene.shape.Polygon;
 
-public abstract class Place extends Polygon {
+public class Place extends Polygon {
 
-    private String name;
-    private Category category;
-    private Position point;
-    private boolean hiden;
-    private boolean selected;
-    private String type;
+    private static final String DEFAULT_TYPE = "Named";
 
+    protected String name;
+    protected Category category;
+    protected Position position;
+    protected boolean hidden;
+    protected boolean selected;
+    private String type = DEFAULT_TYPE;
 
-    public Place(String name, Category category, int posX, int posY) {
-        super();
-        super.getPoints().addAll(new Double[]{
-                Double.valueOf(posX), Double.valueOf(posY),
-                Double.valueOf(posX) - 15.00 , Double.valueOf(posY) -30.00,
-                Double.valueOf(posX) + 15.00 , Double.valueOf(posY) - 30.00
-        });
+    public Place(String name, Category category, double posX, double posY) {
+        super(posX, posY, (posX - 15.00), (posY - 30.00), (posX + 15.00), (posY - 30.00));
         this.name = name;
         this.category = category;
-        this.point = new Position(posX, posY);
+        this.position = new Position(posX, posY);
     }
 
     public String getName() {
@@ -31,12 +27,12 @@ public abstract class Place extends Polygon {
         this.name = name;
     }
 
-    public Position getPoint() {
-        return point;
+    public Position getPosition() {
+        return position;
     }
 
-    public void setPoint(Position point) {
-        this.point = point;
+    public void setPosition(Position position) {
+        this.position = position;
     }
 
     public Category getCategory() {
@@ -47,39 +43,50 @@ public abstract class Place extends Polygon {
         this.category = category;
     }
 
-    public void print(){
-        setFill(category.getColorMiddle());
-        setStroke(category.getColorBorder());
+    public String getType() {
+        return type;
     }
-
-    public String getDescription(){
-        return "";
-    }
-
-    public void setSelect(boolean selected){
-        this.selected = selected;
-    }
-
-    public void setHiden(boolean hiden){
-        this.hiden = hiden;
-    }
-
-    public boolean isHiden(){
-        return this.hiden;
-    }
-
-    public boolean isSelected(){
-        return this.selected;
-    }
-
-    public abstract Place getObj();
 
     public void setType(String type) {
         this.type = type;
     }
 
-    public String getTypeObj(){
-        return this.type;
+    public void print() {
+        setFill(category.getColorMiddle());
+        setStroke(category.getColorBorder());
     }
 
+    public void setSelect(boolean selected) {
+        this.selected = selected;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public boolean isHidden() {
+        return this.hidden;
+    }
+
+    public boolean isSelected() {
+        return this.selected;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s,%s,%.2f,%.2f,%s", "Named", category.getName(), position.getPosX(), position.getPosY(), name);
+    }
+
+    public static Place fromString(String placeStr) {
+
+        String[] parts = placeStr.split(",");
+
+        try {
+            return new Place(parts[4], new Category(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
+        } catch (NumberFormatException e) {
+            System.err.println("Format Exception: " + e.getLocalizedMessage());
+            return null;
+        }
+
+    }
 }
