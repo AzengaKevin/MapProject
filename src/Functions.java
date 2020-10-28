@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,32 +50,40 @@ public class Functions {
         return Arrays.asList(extensions).contains(extension);
     }
 
-    public static void saveData(String nameMap, ArrayList<Place> listObj) throws IOException {
-        if (!listObj.isEmpty()) {
-            new FileHandler().saveToFile((String) nameMap.subSequence(0, nameMap.indexOf("")), listObj);
-            Functions.showBoxAlert(Alert.AlertType.INFORMATION, "Saved", "Saved successfully", "");
+    /**
+     * Save data to file
+     *
+     * @param nameMap the filename
+     * @param places  list to be saved
+     * @throws IOException in case of i/o error
+     */
+    public static void saveData(String nameMap, List<Place> places) throws IOException {
+        if (!places.isEmpty()) {
+            FileHandler.saveToFile(nameMap, places);
+            Functions.showBoxAlert(Alert.AlertType.INFORMATION, "Saving Places", "Saved successfully", "");
         } else {
-            Functions.showBoxAlert(Alert.AlertType.ERROR, "!!", "There is no data to save ", "");
+            Functions.showBoxAlert(Alert.AlertType.INFORMATION, "Saving PLaces", "There is no data to save", "");
         }
     }
 
-    public static void showSaveBox(String nameMap, ArrayList<Place> listObj) {
+    public static void showSaveBox(String nameMap, List<Place> places) {
+
         Alert alertSave = new Alert(Alert.AlertType.CONFIRMATION);
-        alertSave.setTitle("Worning save ");
-        alertSave.setHeaderText("Ther are unsaved changes .");
-        alertSave.setContentText("Are you want to save changes ? ");
-        alertSave.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
+        alertSave.setTitle("Saving Place(s)");
+        alertSave.setHeaderText("Their are unsaved changes.");
+        alertSave.setContentText("Are you want to exit without saving changes? ");
+
+        Optional<ButtonType> optionalButtonType = alertSave.showAndWait();
+        optionalButtonType.ifPresent(buttonType -> {
+            if (buttonType == ButtonType.OK) {
                 try {
-                    saveData(nameMap, listObj);
+                    saveData(nameMap, places);
                 } catch (IOException ex) {
                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                alertSave.close();
-            } else {
-                alertSave.close();
             }
         });
+
     }
 
     /**
@@ -92,7 +102,7 @@ public class Functions {
         alertError.showAndWait();
     }
 
-    public static Place searchOnObjByPosition(ArrayList<Place> listObj, double posX, double posY) {
+    public static Place searchOnObjByPosition(List<Place> listObj, double posX, double posY) {
 
         for (Place place : listObj) {
             if (place.getPosition().getPosX() == posX && place.getPosition().getPosY() == posY) {
@@ -102,7 +112,7 @@ public class Functions {
         return null;
     }
 
-    public static boolean checkPosition(ArrayList<Place> list, int x, int y) {
+    public static boolean checkPosition(List<Place> list, int x, int y) {
         for (int i = 0; i < 30; i++) {
             for (int j = 0; j < 30; j++) {
                 if (searchOnObjByPosition(list, x + i, y + j) != null) {
@@ -113,9 +123,10 @@ public class Functions {
         return true;
     }
 
-    public static ArrayList<Place> addObject(ArrayList<Place> listObj, String type, Place obj) {
+    public static List<Place> addObject(List<Place> listObj, String type, Place obj) {
 
         listObj.add(obj);
+
         return listObj;
     }
 }

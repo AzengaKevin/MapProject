@@ -47,7 +47,7 @@ public class FileHandler {
      * @param list     places to be appended
      * @throws IOException when the is an i/o error
      */
-    public static void saveToFile(String fileName, ArrayList<Place> list) throws IOException {
+    public static void saveToFile(String fileName, List<Place> list) throws IOException {
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)))) {
             for (Place place : list) {
                 writer.append(place.toString()).append("\n");
